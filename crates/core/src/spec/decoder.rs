@@ -2,7 +2,7 @@
 
 use crate::error::{PrismError, PrismResult};
 use serde::{Deserialize, Serialize};
-use stellar_xdr::curr::{ScSpecEntry, ScSpecTypeDef, Limits, ReadXdr};
+use stellar_xdr::curr::{ScSpecEntry, ScSpecTypeDef, Limits, ReadXdr, Limited};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ContractErrorEntry {
@@ -47,7 +47,8 @@ pub fn decode_contract_spec(wasm_bytes: &[u8]) -> PrismResult<ContractSpec> {
     let version = None;
 
     let mut cursor = std::io::Cursor::new(&raw_spec);
-    while let Ok(entry) = ScSpecEntry::read_xdr(&mut cursor, Limits::none()) {
+    let mut limited = Limited::new(&mut cursor, Limits::none());
+    while let Ok(entry) = ScSpecEntry::read_xdr(&mut limited) {
         match entry {
             ScSpecEntry::FunctionV0(func) => {
                 let func_name = func.name.to_string();
@@ -131,7 +132,7 @@ fn format_type_def(type_def: &ScSpecTypeDef) -> String {
         ScSpecTypeDef::Vec(vec) => format!("Vec<{}>", format_type_def(&vec.element_type)),
         ScSpecTypeDef::Map(map) => format!("Map<{}, {}>", format_type_def(&map.key_type), format_type_def(&map.value_type)),
         ScSpecTypeDef::Tuple(tuple) => {
-            let elements: Vec<String> = tuple.elements.iter().map(format_type_def).collect();
+            let elements: Vec<String> = tuple.value_types.iter().map(format_type_def).collect();
             format!("({})", elements.join(", "))
         }
         ScSpecTypeDef::Udt(udt) => udt.name.to_string(),

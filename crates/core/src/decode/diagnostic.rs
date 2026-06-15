@@ -34,6 +34,7 @@ fn scval_to_string(val: &ScVal) -> Option<String> {
     }
 }
 
+#[allow(irrefutable_let_patterns)]
 fn analyze_diagnostic_event(report: &mut DiagnosticReport, event: &DiagnosticEvent) {
     if let ContractEventBody::V0(v0) = &event.event.body {
         let topics: Vec<String> = v0.topics.iter().filter_map(scval_to_string).collect();
