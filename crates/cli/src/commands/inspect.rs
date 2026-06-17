@@ -45,7 +45,7 @@ pub async fn run(
     {
         let fee_context = report.transaction_context.as_ref().map(|ctx| &ctx.fee);
 
-        let bid_fee: Option<i64> = None;
+        let bid_fee = fee_context.and_then(|fee| fee.bid_fee);
         let resource_fee = fee_context.map(|fee| fee.resource_fee);
         let total_charged_fee =
             fee_context.and_then(|fee| fee.inclusion_fee.checked_add(fee.resource_fee));

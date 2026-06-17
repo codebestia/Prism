@@ -69,6 +69,7 @@ pub struct FeeBreakdown {
     pub resource_fee: i64,
     pub refundable_fee: i64,
     pub non_refundable_fee: i64,
+    pub bid_fee: Option<i64>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]

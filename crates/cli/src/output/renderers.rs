@@ -482,6 +482,7 @@ mod tests {
                 resource_fee: 50,
                 refundable_fee: 25,
                 non_refundable_fee: 25,
+                bid_fee: Some(150),
             },
             resources: ResourceSummary {
                 cpu_instructions_used: 1000,
