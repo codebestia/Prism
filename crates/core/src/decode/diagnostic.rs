@@ -30,6 +30,30 @@ fn scval_to_string(val: &ScVal) -> Option<String> {
         ScVal::I32(i) => Some(i.to_string()),
         ScVal::U64(u) => Some(u.to_string()),
         ScVal::I64(i) => Some(i.to_string()),
+        ScVal::Void => Some("Void".to_string()),
+        ScVal::Bool(b) => Some(b.to_string()),
+        ScVal::U128(u) => {
+            let num = ((u.hi as u128) << 64) | (u.lo as u128);
+            Some(num.to_string())
+        }
+        ScVal::I128(i) => {
+            let num = ((i.hi as i128) << 64) | (i.lo as u128 as i128);
+            Some(num.to_string())
+        }
+        ScVal::Vec(Some(v)) => {
+            let items: Vec<String> = v.iter().map(|item| {
+                scval_to_string(item).unwrap_or_else(|| "?".to_string())
+            }).collect();
+            Some(format!("[{}]", items.join(", ")))
+        }
+        ScVal::Map(Some(m)) => {
+            let items: Vec<String> = m.iter().map(|entry| {
+                let k = scval_to_string(&entry.key).unwrap_or_else(|| "?".to_string());
+                let v = scval_to_string(&entry.val).unwrap_or_else(|| "?".to_string());
+                format!("{}: {}", k, v)
+            }).collect();
+            Some(format!("{{{}}}", items.join(", ")))
+        }
         _ => None,
     }
 }
@@ -107,5 +131,40 @@ fn analyze_diagnostic_event(report: &mut DiagnosticReport, event: &DiagnosticEve
                 report.detailed_explanation.push_str(&format!("\n- [{}]", topics_str));
             }
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use stellar_xdr::curr::{ScVal, ScVec, ScMap, ScMapEntry, Int128Parts};
+
+    #[test]
+    fn test_scval_to_string_empty_args() {
+        let empty_vec = ScVal::Vec(Some(ScVec(vec![].try_into().unwrap())));
+        assert_eq!(scval_to_string(&empty_vec), Some("[]".to_string()));
+        let void_val = ScVal::Void;
+        assert_eq!(scval_to_string(&void_val), Some("Void".to_string()));
+    }
+
+    #[test]
+    fn test_scval_to_string_large_integers() {
+        let u128_val = ScVal::U128(Int128Parts { hi: 1, lo: 0 });
+        assert_eq!(scval_to_string(&u128_val), Some("18446744073709551616".to_string()));
+
+        let i128_val = ScVal::I128(Int128Parts { hi: -1i64, lo: 0 });
+        assert_eq!(scval_to_string(&i128_val), Some("-18446744073709551616".to_string()));
+    }
+
+    #[test]
+    fn test_scval_to_string_nested_map() {
+        let map_entry = ScMapEntry {
+            key: ScVal::Symbol("key".try_into().unwrap()),
+            val: ScVal::U32(42),
+        };
+        let scmap = ScMap(vec![map_entry].try_into().unwrap());
+        let nested_map = ScVal::Map(Some(scmap));
+        let vec_val = ScVal::Vec(Some(ScVec(vec![nested_map].try_into().unwrap())));
+        assert_eq!(scval_to_string(&vec_val), Some("[{key: 42}]".to_string()));
     }
 }
