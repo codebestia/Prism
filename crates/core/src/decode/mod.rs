@@ -2,6 +2,7 @@
 
 pub mod context;
 pub mod contract_error;
+pub mod cross_contract;
 pub mod diagnostic;
 pub mod host_error;
 pub mod mappings;
@@ -81,6 +82,8 @@ pub async fn decode_transaction_with_op_filter(
     diagnostic::enrich_report(&mut report, &tx_data)?;
 
     context::enrich_report(&mut report, &tx_data)?;
+
+    cross_contract::attribute_failure(&mut report, &tx_data)?;
 
     Ok(report)
 }

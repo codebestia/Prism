@@ -81,6 +81,19 @@ pub struct ResourceSummary {
     pub write_bytes: u64,
 }
 
+/// Pinpoints the exact contract and function where a cross-contract call chain failed.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct FailureAttribution {
+    /// The contract address that directly caused the failure.
+    pub contract_address: String,
+    /// The function name at the point of failure, if determinable.
+    pub function_name: Option<String>,
+    /// The call depth at which the failure occurred (0 = top-level invoker).
+    pub call_depth: usize,
+    /// Human-readable description of where in the call chain the failure originated.
+    pub origin_description: String,
+}
+
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct DiagnosticReport {
 
@@ -105,6 +118,10 @@ pub struct DiagnosticReport {
     pub transaction_context: Option<TransactionContext>,
 
     pub related_errors: Vec<String>,
+
+    /// Present when a cross-contract call chain was detected and the failure
+    /// was attributed to a specific sub-contract, not the top-level invoker.
+    pub cross_contract_attribution: Option<FailureAttribution>,
 }
 
 impl DiagnosticReport {
@@ -122,6 +139,7 @@ impl DiagnosticReport {
             contract_error: None,
             transaction_context: None,
             related_errors: Vec::new(),
+            cross_contract_attribution: None,
         }
     }
 }

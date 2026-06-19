@@ -44,6 +44,7 @@ pub fn build_report(error: &ClassifiedError) -> PrismResult<DiagnosticReport> {
             contract_error: None,
             transaction_context: None,
             related_errors: entry.related_errors.clone(),
+            cross_contract_attribution: None,
         };
 
         Ok(report)

@@ -43,5 +43,16 @@ pub fn print_report(report: &DiagnosticReport) -> anyhow::Result<()> {
         println!("{}", render_fix_list(&report.suggested_fixes));
     }
 
+    if let Some(attribution) = &report.cross_contract_attribution {
+        println!();
+        println!("{}", render_section_header("Cross-Contract Failure Attribution"));
+        println!("Origin Contract : {}", attribution.contract_address);
+        if let Some(fn_name) = &attribution.function_name {
+            println!("Failed Function : {fn_name}");
+        }
+        println!("Call Depth      : {}", attribution.call_depth);
+        println!("Details         : {}", attribution.origin_description);
+    }
+
     Ok(())
 }
