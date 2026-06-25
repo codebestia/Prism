@@ -1,4 +1,5 @@
 
+pub mod auth;
 pub mod auth_signature;
 pub mod context;
 pub mod contract_error;
@@ -9,6 +10,9 @@ pub mod mappings;
 pub mod report;
 pub mod walker;
 
+pub use auth::{
+    AddressCredential, AuthChain, AuthCredential, AuthFunctionKind, AuthInvocation,
+};
 pub use walker::{
     walk_diagnostic_events, DiagnosticEventKind, DiagnosticEventWalker,
     StructuredDiagnosticEvent,
@@ -189,6 +193,7 @@ pub async fn decode_transaction_with_op_filter(
 
         diagnostic::enrich_report(&mut report, &tx_data)?;
         context::enrich_report(&mut report, &tx_data)?;
+        cross_contract::attribute_failure(&mut report, &tx_data)?;
         reports.push(report);
     }
 
@@ -356,9 +361,6 @@ mod tests {
             "resultMetaXdr": meta_b64,
         });
 
-    cross_contract::attribute_failure(&mut report, &tx_data)?;
-
-    Ok(report)
         let result = parse_v3_metadata(&mut data);
         assert!(result.is_ok());
         assert!(data.get("resourceFee").is_none());

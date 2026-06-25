@@ -5,7 +5,7 @@ use base64::{engine::general_purpose::STANDARD, Engine as _};
 use stellar_xdr::curr::{
     ContractEvent, DiagnosticEvent, LedgerEntry, LedgerKey, Limits, ReadXdr, ScAddress, ScBytes,
     ScMap, ScMapEntry, ScString, ScSymbol, ScVal, ScVec, TransactionEnvelope, TransactionMeta,
-    TransactionResult, WriteXdr,
+    TransactionResult, WriteXdr, SorobanAuthorizationEntry
 };
 
 pub trait XdrCodec: Sized {
